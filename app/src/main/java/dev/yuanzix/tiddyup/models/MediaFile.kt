@@ -6,4 +6,5 @@ data class MediaFile(
     val uri: Uri,
     val name: String,
     val type: MediaType,
+    var toDelete: Boolean = false,
 )

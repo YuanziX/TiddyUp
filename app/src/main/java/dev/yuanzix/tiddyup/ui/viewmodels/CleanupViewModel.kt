@@ -48,4 +48,39 @@ class CleanupViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun next() {
+        if (currentIndex.value < mediaFiles.value.size - 1) {
+            currentIndex.value++
+        }
+    }
+
+    fun setIndexTo(index: Int) {
+        if (index < mediaFiles.value.size) {
+            currentIndex.value = index
+        }
+    }
+
+    private fun setBoolAndNext(bool: Boolean) {
+        viewModelScope.launch {
+            val currentIndex = currentIndex.value
+            if (currentIndex in mediaFiles.value.indices) {
+                val updatedFile = mediaFiles.value[currentIndex].copy(toDelete = bool)
+                mediaFiles.value = mediaFiles.value.toMutableList().apply {
+                    set(currentIndex, updatedFile)
+                }
+            }
+            next()
+        }
+    }
+
+    fun keepAndNext() {
+        // flag - toDelete
+        setBoolAndNext(false)
+    }
+
+    fun deleteAndNext() {
+        // flag - toDelete
+        setBoolAndNext(true)
+    }
 }
