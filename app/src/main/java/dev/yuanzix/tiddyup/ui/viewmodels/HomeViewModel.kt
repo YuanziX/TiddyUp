@@ -9,7 +9,6 @@ import dev.yuanzix.tiddyup.models.FilterCriteria
 import dev.yuanzix.tiddyup.models.Month
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,7 +18,6 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     var isFetched: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var hasImages: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    var isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val albums: MutableStateFlow<Set<Album>> = MutableStateFlow(emptySet())
     val months: MutableStateFlow<Set<Month>> = MutableStateFlow(emptySet())
     var selectedFilter: MutableStateFlow<FilterCriteria> = MutableStateFlow(FilterCriteria.NONE)
@@ -33,12 +31,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun fetchAlbums() {
-        isLoading.value = true
         viewModelScope.launch {
             mediaReader.getImageAlbums().catch { e ->
                 errorMessage.value = "Failed to fetch albums"
-            }.onCompletion {
-                isLoading.value = false
             }.collect { album ->
                 albums.value = albums.value.plus(album)
             }
@@ -46,12 +41,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun fetchMonths() {
-        isLoading.value = true
         viewModelScope.launch {
             mediaReader.getMonthLabels().catch { e ->
                 errorMessage.value = "Failed to fetch months"
-            }.onCompletion {
-                isLoading.value = false
             }.collect { month ->
                 months.value = months.value.plus(month)
             }
@@ -59,9 +51,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun setFilterCriteria(fc: FilterCriteria) {
-        isLoading.value = true
         selectedFilter.value = fc
-        isLoading.value = false
     }
 
     fun resetErrorMessage() {

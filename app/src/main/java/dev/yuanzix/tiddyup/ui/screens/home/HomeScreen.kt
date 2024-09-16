@@ -44,7 +44,6 @@ fun HomeScreen(
 ) {
     val initialFetched by viewModel.isFetched.collectAsState(false)
     val isNotEmpty by viewModel.hasImages.collectAsState(false)
-    val isLoading by viewModel.isLoading.collectAsState(false)
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cleaning))
     val selectedFilter by viewModel.selectedFilter.collectAsState(FilterCriteria.NONE)
 
@@ -61,7 +60,7 @@ fun HomeScreen(
         }
     }
 
-    if (!initialFetched || isLoading) {
+    if (!initialFetched) {
         return Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -89,8 +88,6 @@ fun HomeScreen(
             )
         }
     }
-
-    viewModel.fetchAlbums()
 
     return Scaffold(topBar = {
         TopAppBar(
