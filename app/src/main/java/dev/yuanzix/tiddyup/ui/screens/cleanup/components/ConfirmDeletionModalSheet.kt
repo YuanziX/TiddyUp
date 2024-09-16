@@ -15,6 +15,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,6 +33,8 @@ fun ConfirmDeletionModalSheet(
     onToggleDelete: (Uri) -> Unit,
     mediaFiles: List<MediaFile>,
 ) {
+    var filesToShow by remember { mutableStateOf(mediaFiles) }
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState
@@ -47,11 +53,22 @@ fun ConfirmDeletionModalSheet(
             ContextualFlowRow(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalArrangement = Arrangement.SpaceEvenly,
-                itemCount = mediaFiles.size
+                itemCount = filesToShow.size
             ) { index ->
                 ConfirmDeletionPreviewImage(
-                    mediaFile = mediaFiles[index],
-                    onClick = { onToggleDelete(mediaFiles[index].uri) }
+                    mediaFile = filesToShow[index],
+                    onClick = {
+                        // update local state
+                        val updatedFile =
+                            filesToShow[index].copy(toDelete = !filesToShow[index].toDelete)
+                        val updatedFiles = filesToShow.toMutableList().apply {
+                            set(index, updatedFile)
+                        }
+                        filesToShow = updatedFiles
+
+                        // update viewmodel state
+                        onToggleDelete(updatedFile.uri)
+                    }
                 )
             }
 
