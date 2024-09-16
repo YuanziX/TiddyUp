@@ -1,6 +1,9 @@
 package dev.yuanzix.tiddyup.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,7 +38,9 @@ fun Navigator(
         }
 
         composable<Home> {
-            HomeScreen(onNavigateToCleanup = { filterCriteria: FilterCriteria, albumId: Long, albumName: String?, month: String? ->
+            HomeScreen(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                onNavigateToCleanup = { filterCriteria: FilterCriteria, albumId: Long, albumName: String?, month: String? ->
                 navController.navigate(Cleanup(filterCriteria, albumId, albumName, month)) {
                     popUpTo(Home)
                 }
@@ -49,6 +54,7 @@ fun Navigator(
         ) { entry ->
             val cleanup = entry.toRoute<Cleanup>()
             CleanupScreen(
+                modifier = Modifier.padding(horizontal = 24.dp),
                 filterCriteria = cleanup.filterCriteria,
                 albumId = cleanup.albumId,
                 month = cleanup.month,

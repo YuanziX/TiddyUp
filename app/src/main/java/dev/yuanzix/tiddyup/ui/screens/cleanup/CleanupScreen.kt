@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -57,6 +58,7 @@ import dev.yuanzix.tiddyup.ui.viewmodels.CleanupViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CleanupScreen(
+    modifier: Modifier,
     viewModel: CleanupViewModel = hiltViewModel(),
     filterCriteria: FilterCriteria,
     albumId: Long,
@@ -121,13 +123,14 @@ fun CleanupScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .scrollable(
-                    state = rememberScrollState(),
-                    orientation = Orientation.Vertical,
-                ),
+            modifier = modifier.then(
+                Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .scrollable(
+                        state = rememberScrollState(),
+                        orientation = Orientation.Vertical,
+                    )),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (isLoading) {
@@ -200,6 +203,7 @@ fun CleanupScreen(
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     ) { viewModel.showBottomSheet() }
                 }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

@@ -53,8 +53,7 @@ fun HomeScreen(
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
             snackbarHostState.showSnackbar(
-                errorMessage.toString(),
-                duration = SnackbarDuration.Short
+                errorMessage.toString(), duration = SnackbarDuration.Short
             )
             viewModel.resetErrorMessage()
         }

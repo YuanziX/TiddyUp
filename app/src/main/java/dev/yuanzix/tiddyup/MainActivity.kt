@@ -9,7 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import dev.yuanzix.tiddyup.navigation.Navigator
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TiddyUpTheme {
                 Box(
-                    modifier = Modifier.safeContentPadding()
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Navigator(
                         openAppSettings = ::openAppSettings,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -87,7 +86,8 @@ fun CurrentImage(
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .offset { IntOffset(animatableOffset.value.roundToInt(), 0) }
-                .fillMaxSize()
+                .fillMaxWidth()
+                .height(config.screenHeightDp.dp * 0.5f)
         )
 
         val leftSwipeAlpha = (animatableOffset.value / -swipeThreshold).coerceIn(0f, 1f)
