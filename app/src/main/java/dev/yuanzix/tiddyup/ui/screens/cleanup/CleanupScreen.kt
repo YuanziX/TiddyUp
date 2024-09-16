@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -43,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,7 @@ import dev.yuanzix.tiddyup.ui.screens.cleanup.components.ActionButton
 import dev.yuanzix.tiddyup.ui.screens.cleanup.components.ConfirmDeletionModalSheet
 import dev.yuanzix.tiddyup.ui.screens.cleanup.components.PreviewImage
 import dev.yuanzix.tiddyup.ui.viewmodels.CleanupViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -82,6 +85,9 @@ fun CleanupScreen(
 
     val errorMessage by viewModel.errorMessage.collectAsState(null)
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
@@ -130,7 +136,8 @@ fun CleanupScreen(
                     .scrollable(
                         state = rememberScrollState(),
                         orientation = Orientation.Vertical,
-                    )),
+                    )
+            ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (isLoading) {
@@ -153,7 +160,9 @@ fun CleanupScreen(
                     )
                 }
 
-                LazyRow {
+                LazyRow(
+                    state = listState,
+                ) {
                     itemsIndexed(mediaFiles) { ind, mediaFile ->
                         PreviewImage(index = ind,
                             isActive = ind == index,
@@ -165,8 +174,14 @@ fun CleanupScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 CurrentImage(imageUri = mediaFiles[index].uri, onRightSwipe = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(index = index)
+                    }
                     viewModel.keepAndNext()
                 }, onLeftSwipe = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(index = index)
+                    }
                     viewModel.deleteAndNext()
                 })
 
@@ -186,6 +201,9 @@ fun CleanupScreen(
                         backgroundColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                     ) {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = index)
+                        }
                         viewModel.deleteAndNext()
                     }
                     ActionButton(
@@ -194,6 +212,9 @@ fun CleanupScreen(
                         backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ) {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = index)
+                        }
                         viewModel.keepAndNext()
                     }
                     ActionButton(
