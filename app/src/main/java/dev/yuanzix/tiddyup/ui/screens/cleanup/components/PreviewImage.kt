@@ -38,7 +38,6 @@ fun PreviewImage(
         modifier = Modifier
             .size(100.dp)
             .padding(8.dp)
-            .clickable { onClick(index) }
             .scale(scale.value)
     ) {
         AsyncImage(
@@ -47,7 +46,8 @@ fun PreviewImage(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .clip(if (isActive) CircleShape else RectangleShape),
+                .clip(if (isActive) CircleShape else RectangleShape)
+                .clickable { onClick(index) }
         )
 
         Box(
@@ -68,7 +68,46 @@ fun PreviewImage(
                 modifier = Modifier.size(16.dp)
             )
         }
+    }
+}
 
+@Composable
+fun ConfirmDeletionPreviewImage(
+    mediaFile: MediaFile,
+    onClick: () -> Unit,
+) {
+    val scale = animateFloatAsState(if (mediaFile.toDelete) 1f else 0.8f, label = "")
 
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .padding(8.dp)
+            .scale(scale.value)
+            .clickable { onClick() }
+    ) {
+        AsyncImage(
+            model = mediaFile.uri,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        if (mediaFile.toDelete) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 12.dp, y = (-12).dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }

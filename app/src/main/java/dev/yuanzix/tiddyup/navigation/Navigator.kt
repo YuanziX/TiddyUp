@@ -35,8 +35,8 @@ fun Navigator(
         }
 
         composable<Home> {
-            HomeScreen(onNavigateToCleanup = { filterCriteria: FilterCriteria, albumId: Long, month: String? ->
-                navController.navigate(Cleanup(filterCriteria, albumId, month)) {
+            HomeScreen(onNavigateToCleanup = { filterCriteria: FilterCriteria, albumId: Long, albumName: String?, month: String? ->
+                navController.navigate(Cleanup(filterCriteria, albumId, albumName, month)) {
                     popUpTo(Home)
                 }
             })
@@ -52,6 +52,10 @@ fun Navigator(
                 filterCriteria = cleanup.filterCriteria,
                 albumId = cleanup.albumId,
                 month = cleanup.month,
+                albumName = cleanup.albumName,
+                goBack = {
+                    navController.popBackStack()
+                }
             )
         }
     }

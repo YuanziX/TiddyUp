@@ -6,6 +6,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.yuanzix.tiddyup.models.Album
@@ -24,20 +26,21 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+
 class MediaHandler @Inject constructor(
     @ApplicationContext private val ctx: Context,
 ) {
-    private val queryUri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    private val imageQueryUri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
     } else {
-        MediaStore.Files.getContentUri("external")
+        MediaStore.Images.Media.getContentUri("external")
     }
 
     suspend fun haveImages(): Boolean = withContext(Dispatchers.IO) {
         if (!hasReadPermission()) return@withContext false
 
         ctx.contentResolver.query(
-            queryUri,
+            imageQueryUri,
             arrayOf(MediaStore.Images.Media._ID),
             "${MediaStore.Images.Media.MIME_TYPE} LIKE ?",
             arrayOf("image/%"),
@@ -56,7 +59,7 @@ class MediaHandler @Inject constructor(
         )
 
         ctx.contentResolver.query(
-            queryUri,
+            imageQueryUri,
             projection,
             "${MediaStore.Images.Media.MIME_TYPE} LIKE ?",
             arrayOf("image/%"),
@@ -80,7 +83,7 @@ class MediaHandler @Inject constructor(
                             id = bucketId,
                             name = bucketName,
                             imageCount = imageCount,
-                            thumbnailUri = ContentUris.withAppendedId(queryUri, id)
+                            thumbnailUri = ContentUris.withAppendedId(imageQueryUri, id)
                         )
                     )
                 }
@@ -101,7 +104,7 @@ class MediaHandler @Inject constructor(
         val sortOrder = "${MediaStore.Images.Media.DATE_MODIFIED} DESC"
 
         ctx.contentResolver.query(
-            queryUri,
+            imageQueryUri,
             projection,
             selection,
             selectionArgs,
@@ -111,7 +114,6 @@ class MediaHandler @Inject constructor(
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val mimeTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
 
-            var emittedCount = 0
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
                 val name = cursor.getString(nameColumn)
@@ -120,12 +122,11 @@ class MediaHandler @Inject constructor(
                 if (name != null && mimeType != null) {
                     emit(
                         MediaFile(
-                            uri = ContentUris.withAppendedId(queryUri, id),
+                            uri = ContentUris.withAppendedId(imageQueryUri, id),
                             name = name,
                             type = MediaType.IMAGE,
                         )
                     )
-                    emittedCount++
                 }
             }
         }
@@ -146,7 +147,7 @@ class MediaHandler @Inject constructor(
         )
 
         ctx.contentResolver.query(
-            queryUri,
+            imageQueryUri,
             projection,
             "${MediaStore.Images.Media.MIME_TYPE} LIKE ?",
             arrayOf("image/%"),
@@ -171,7 +172,7 @@ class MediaHandler @Inject constructor(
                     emit(
                         Month(
                             month = formattedDate,
-                            thumbnailUri = ContentUris.withAppendedId(queryUri, id)
+                            thumbnailUri = ContentUris.withAppendedId(imageQueryUri, id)
                         )
                     )
                 }
@@ -221,7 +222,7 @@ class MediaHandler @Inject constructor(
         )
 
         ctx.contentResolver.query(
-            queryUri,
+            imageQueryUri,
             projection,
             selection,
             selectionArgs,
@@ -230,25 +231,41 @@ class MediaHandler @Inject constructor(
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
 
-            var emittedCount = 0
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
                 val name = cursor.getString(nameColumn) ?: continue
 
                 emit(
                     MediaFile(
-                        uri = ContentUris.withAppendedId(queryUri, id),
+                        uri = ContentUris.withAppendedId(imageQueryUri, id),
                         name = name,
                         type = MediaType.IMAGE
                     )
                 )
-                emittedCount++
             }
         } ?: run {
             emitAll(emptyFlow())
         }
     }
 
+    fun createDeleteRequest(
+        mediaFiles: List<MediaFile>,
+        launcher: ActivityResultLauncher<IntentSenderRequest>,
+    ) {
+        val contentResolver = ctx.contentResolver
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val pi = MediaStore.createDeleteRequest(contentResolver, mediaFiles.map {
+                it.uri
+            })
+            val request = IntentSenderRequest.Builder(pi.intentSender).build()
+            launcher.launch(request)
+        } else {
+            mediaFiles.forEach { mediaFile ->
+                ctx.contentResolver.delete(mediaFile.uri, null, null)
+            }
+        }
+    }
 
     private fun hasReadPermission(): Boolean {
         return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {

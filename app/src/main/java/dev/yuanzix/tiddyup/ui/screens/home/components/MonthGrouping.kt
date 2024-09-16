@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.yuanzix.tiddyup.models.FilterCriteria
@@ -15,9 +16,12 @@ import dev.yuanzix.tiddyup.ui.viewmodels.HomeViewModel
 fun MonthGrouping(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel,
-    onNavigateToCleanup: (filterCriteria: FilterCriteria, albumId: Long, month: String?) -> Unit,
+    onNavigateToCleanup: (filterCriteria: FilterCriteria, albumId: Long, albumName: String?, month: String?) -> Unit,
 ) {
-    viewModel.fetchMonths()
+    LaunchedEffect(Unit) {
+        viewModel.fetchMonths()
+    }
+
     return LazyColumn(
         modifier = modifier,
         verticalArrangement = spacedBy(8.dp),
@@ -30,7 +34,7 @@ fun MonthGrouping(
                 imageUri = month.thumbnailUri,
                 label = month.month,
                 onClick = {
-                    onNavigateToCleanup(FilterCriteria.MONTH, -1, month.month)
+                    onNavigateToCleanup(FilterCriteria.MONTH, -1, null, month.month)
                 }
             )
         }

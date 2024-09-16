@@ -1,6 +1,8 @@
 package dev.yuanzix.tiddyup.ui.viewmodels
 
-import android.util.Log
+import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,13 +20,15 @@ class CleanupViewModel @Inject constructor(
 ) : ViewModel() {
     val mediaFiles: MutableStateFlow<List<MediaFile>> = MutableStateFlow(emptyList())
     val currentIndex: MutableStateFlow<Int> = MutableStateFlow(0)
+    val showBottomSheet: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val errorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
 
     fun getMediaByAlbum(albumId: Long) {
         viewModelScope.launch {
             mediaFiles.value = emptyList()
             mediaReader.getImagesInAlbum(albumId)
                 .catch { e ->
-                    Log.e("CleanupViewModel", "Error fetching album files", e)
+                    errorMessage.value = "Error fetching album files"
                 }
                 .collect { newMedia ->
                     mediaFiles.update { currentList ->
@@ -39,7 +43,7 @@ class CleanupViewModel @Inject constructor(
             mediaFiles.value = emptyList()
             mediaReader.getImagesForMonth(month)
                 .catch { e ->
-                    Log.e("CleanupViewModel", "Error fetching month files", e)
+                    errorMessage.value = "Error fetching month files"
                 }
                 .collect { newMedia ->
                     mediaFiles.update { currentList ->
@@ -52,7 +56,17 @@ class CleanupViewModel @Inject constructor(
     private fun next() {
         if (currentIndex.value < mediaFiles.value.size - 1) {
             currentIndex.value++
+        } else {
+            showBottomSheet.value = true
         }
+    }
+
+    fun hideBottomSheet() {
+        showBottomSheet.value = false
+    }
+
+    fun showBottomSheet() {
+        showBottomSheet.value = true
     }
 
     fun setIndexTo(index: Int) {
@@ -82,5 +96,32 @@ class CleanupViewModel @Inject constructor(
     fun deleteAndNext() {
         // flag - toDelete
         setBoolAndNext(true)
+    }
+
+    fun deleteMarked(launcher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaReader.createDeleteRequest(mediaFiles.value.filter { it.toDelete }, launcher)
+        }
+    }
+
+    fun toggleDeleteFlag(mediaUri: Uri) {
+        viewModelScope.launch {
+            val index = mediaFiles.value.indexOfFirst { it.uri == mediaUri }
+            if (index != -1) {
+                val updatedFile =
+                    mediaFiles.value[index].copy(toDelete = !mediaFiles.value[index].toDelete)
+                mediaFiles.value = mediaFiles.value.toMutableList().apply {
+                    set(index, updatedFile)
+                }
+            }
+        }
+    }
+
+    fun setErrorMessage(message: String) {
+        errorMessage.value = message
+    }
+
+    fun resetErrorMessage() {
+        errorMessage.value = null
     }
 }

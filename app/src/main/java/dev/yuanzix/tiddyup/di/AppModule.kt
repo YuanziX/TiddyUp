@@ -15,6 +15,6 @@ object AppModule {
     @Singleton
     @Provides
     fun provideMediaReader(
-        @ApplicationContext ctx: Context
+        @ApplicationContext ctx: Context,
     ) = MediaHandler(ctx)
 }

@@ -4,15 +4,21 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.yuanzix.tiddyup.R
+import coil.compose.AsyncImage
 import dev.yuanzix.tiddyup.ui.components.MediaPermissionTextProvider
 import dev.yuanzix.tiddyup.ui.components.PermissionDialog
 import dev.yuanzix.tiddyup.ui.viewmodels.PermissionsViewModel
@@ -78,9 +84,10 @@ fun BaseScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_launcher_foreground),
-            contentDescription = "App Logo"
+        AsyncImage(
+            model = LocalContext.current.packageManager.getApplicationIcon("dev.yuanzix.tiddyup"),
+            contentDescription = "App Icon",
+            modifier = Modifier.size(200.dp)
         )
     }
 }

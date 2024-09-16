@@ -10,11 +10,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -35,13 +40,26 @@ import dev.yuanzix.tiddyup.ui.viewmodels.HomeViewModel
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToCleanup: (filterCriteria: FilterCriteria, albumId: Long, month: String?) -> Unit,
+    onNavigateToCleanup: (filterCriteria: FilterCriteria, albumId: Long, albumName: String?, month: String?) -> Unit,
 ) {
     val initialFetched by viewModel.isFetched.collectAsState(false)
     val isNotEmpty by viewModel.hasImages.collectAsState(false)
     val isLoading by viewModel.isLoading.collectAsState(false)
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cleaning))
     val selectedFilter by viewModel.selectedFilter.collectAsState(FilterCriteria.NONE)
+
+    val errorMessage by viewModel.errorMessage.collectAsState(null)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            snackbarHostState.showSnackbar(
+                errorMessage.toString(),
+                duration = SnackbarDuration.Short
+            )
+            viewModel.resetErrorMessage()
+        }
+    }
 
     if (!initialFetched || isLoading) {
         return Column(
@@ -76,9 +94,9 @@ fun HomeScreen(
 
     return Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Hi there") },
+            title = { Text("Let's get to cleaning") },
         )
-    }) { paddingValues ->
+    }, snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             modifier = modifier.then(
                 Modifier.padding(paddingValues),
@@ -94,15 +112,13 @@ fun HomeScreen(
                 when (targetState) {
                     FilterCriteria.ALBUM -> {
                         AlbumGrouping(
-                            viewModel = viewModel,
-                            onNavigateToCleanup = onNavigateToCleanup
+                            viewModel = viewModel, onNavigateToCleanup = onNavigateToCleanup
                         )
                     }
 
                     FilterCriteria.MONTH -> {
                         MonthGrouping(
-                            viewModel = viewModel,
-                            onNavigateToCleanup = onNavigateToCleanup
+                            viewModel = viewModel, onNavigateToCleanup = onNavigateToCleanup
                         )
                     }
 

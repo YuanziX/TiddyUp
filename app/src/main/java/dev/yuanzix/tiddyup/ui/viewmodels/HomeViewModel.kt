@@ -1,6 +1,5 @@
 package dev.yuanzix.tiddyup.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +23,7 @@ class HomeViewModel @Inject constructor(
     val albums: MutableStateFlow<Set<Album>> = MutableStateFlow(emptySet())
     val months: MutableStateFlow<Set<Month>> = MutableStateFlow(emptySet())
     var selectedFilter: MutableStateFlow<FilterCriteria> = MutableStateFlow(FilterCriteria.NONE)
+    var errorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {
@@ -36,7 +36,7 @@ class HomeViewModel @Inject constructor(
         isLoading.value = true
         viewModelScope.launch {
             mediaReader.getImageAlbums().catch { e ->
-                Log.e("MainViewModel", "Error fetching albums", e)
+                errorMessage.value = "Failed to fetch albums"
             }.onCompletion {
                 isLoading.value = false
             }.collect { album ->
@@ -49,7 +49,7 @@ class HomeViewModel @Inject constructor(
         isLoading.value = true
         viewModelScope.launch {
             mediaReader.getMonthLabels().catch { e ->
-                Log.e("MainViewModel", "Error fetching months", e)
+                errorMessage.value = "Failed to fetch months"
             }.onCompletion {
                 isLoading.value = false
             }.collect { month ->
@@ -62,5 +62,9 @@ class HomeViewModel @Inject constructor(
         isLoading.value = true
         selectedFilter.value = fc
         isLoading.value = false
+    }
+
+    fun resetErrorMessage() {
+        errorMessage.value = null
     }
 }

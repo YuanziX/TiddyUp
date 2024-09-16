@@ -13,5 +13,6 @@ object Home
 data class Cleanup(
     val filterCriteria: FilterCriteria,
     val albumId: Long = -1,
+    val albumName: String? = null,
     val month: String? = null,
 )

@@ -84,7 +84,7 @@ fun CurrentImage(
         AsyncImage(
             model = imageUri,
             contentDescription = null,
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
                 .offset { IntOffset(animatableOffset.value.roundToInt(), 0) }
                 .fillMaxSize()
